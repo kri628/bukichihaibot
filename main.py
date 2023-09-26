@@ -9,6 +9,9 @@ prev_result = []
 color_m = 0x82d745
 color_w = 0xe8e82a
 
+f = open('../bot.txt', 'r')
+token = f.readline()
+
 config = {}
 
 
@@ -32,7 +35,8 @@ def init_server(server_id):
     global config
 
     config[str(server_id)] = {"allowed_grp": [],
-                              "min_inked": False
+                              "min-inked": False,
+                              "non-dup": False
                               }
 
     save_setting()
@@ -83,7 +87,7 @@ async def on_ready():
         config = json.load(f)
     f.close()
 
-    print(config)
+    # print(config)
 
 
 @bot.command(name='help')
@@ -96,6 +100,9 @@ async def response_help(ctx):
     embed.add_field(name="`/chmod min-inked [on/off]`", value="チームメンバー全体の最小限の塗り性能を保障します。"
                                                               "\nこの機能を on/off することができます。"
                                                               "\n*サーバーの所有者と指定された管理メンバーのみ使用できます。\n", inline=False)
+    embed.add_field(name="`/chmod non-dup [on/off]`", value="チーム内の武器が重複しないようにします。"
+                                                            "\nこの機能を on/off することができます。"
+                                                            "\n*サーバーの所有者と指定された管理メンバーのみ使用できます。\n",  inline=False)
 
     embed.add_field(name="`/chgrp add [@ロール]`"
                          "\n`/chgrp del [@ロール]`", value="ロールに管理権限を付与または取り消します。"
@@ -110,10 +117,10 @@ async def random_weapon(ctx, *, text=''):
     global prev_result, config
 
     server_id = ctx.guild.id
-    min_inked = config.get(str(server_id)).get('min_inked')
+    settings = config.get(str(server_id))
     # print(min_inked)
 
-    if min_inked is None:
+    if settings is None:
         init_server(server_id)
 
     try:
@@ -125,7 +132,7 @@ async def random_weapon(ctx, *, text=''):
             if num > 4 or num < 2:
                 raise MemberNumError('Open member must be 2~4.')
 
-            weapon, result = bukichi.getOpResult(num, prev_result, min_inked)
+            weapon, result = bukichi.getOpResult(num, prev_result, settings)
 
             prev_result = result
 
@@ -142,14 +149,14 @@ async def random_weapon(ctx, *, text=''):
                 raise MemberNumError('Member must be even.')
 
             n = num // 2
-            weapon_b, weapon_y = bukichi.getPrResult(n, min_inked)
+            weapon_b, weapon_y = bukichi.getPrResult(n, settings)
 
             str_b = '\n'.join(weapon_b)
             str_y = '\n'.join(weapon_y)
 
             embed = discord.Embed(title="プラベ", description="ランダムで武器を選びます。", color=color_m)
-            embed.add_field(name="Blue", value='>>> {}'.format(str_b), inline=True)
-            embed.add_field(name="Yellow", value='>>> {}'.format(str_y), inline=True)
+            embed.add_field(name="\U0001F49B Yellow", value='>>> {}'.format(str_b), inline=True)
+            embed.add_field(name="\U0001F499 Blue", value='>>> {}'.format(str_y), inline=True)
 
         else:
             raise CommandError("Mode must be 'op' or 'pr'.")
@@ -190,45 +197,41 @@ async def chSetting(ctx, *, text=''):
         words = text.split()
         mode = words[0]
 
-        if mode == 'min-inked':
+        if mode == 'min-inked' or mode == 'non-dup':
             if not isAllowed(server_id, ctx.message.author):
-                embed = discord.Embed(title="設定変更", description="このコマンドは管理者と指定された管理メンバーのみ使用できます。",
+                embed = discord.Embed(title="設定変更", description="このコマンドはサーバーの所有者と指定された管理メンバーのみ使用できます。",
                                       color=color_w)
                 await ctx.send(embed=embed)
                 return
 
-            # if not (ctx.message.author.guild_permissions.administrator or ctx.message.author.id == 1020740857856524288):
-            #     embed = discord.Embed(title="設定変更", description="このコマンドは管理者と指定された管理メンバーのみ使用できます。",
-            #                           color=color_w)
-            #     await ctx.send(embed=embed)
-            #     return
-
             value = words[1]
 
             if value == 'on':
-                config[str(server_id)]['min_inked'] = True
+                config[str(server_id)][mode] = True
 
                 save_setting()
 
                 embed = discord.Embed(title="設定変更", description="設定が変更されました。", color=color_m)
-                embed.set_footer(text="min-inked: on")
+                embed.set_footer(text=f"{mode}: on")
                 await ctx.send(embed=embed)
 
             elif value == 'off':
-                config[str(server_id)]['min_inked'] = False
+                config[str(server_id)][mode] = False
 
                 save_setting()
 
                 embed = discord.Embed(title="設定変更", description="設定が変更されました。", color=color_m)
-                embed.set_footer(text="min-inked: off")
+                embed.set_footer(text=f"{mode}: off")
                 await ctx.send(embed=embed)
 
             else:
                 raise CommandError("min-inked mode must be 'on'/'off'.")
 
         elif mode == 'status':
-            min_inked = config.get(str(server_id)).get('min_inked')
-            value = 'on' if min_inked else 'off'
+            min_inked = config.get(str(server_id)).get('min-inked')
+            non_dup = config.get(str(server_id)).get('non-dup')
+            min_inked_s = 'on' if min_inked else 'off'
+            non_dup_s = 'on' if non_dup else 'off'
 
             allowed_roles_id = config.get(str(server_id)).get('allowed_grp')
 
@@ -253,13 +256,14 @@ async def chSetting(ctx, *, text=''):
                             name = member.name
                         member_name.add(name)
 
-            print(member_name)
+            # print(member_name)
             str_m = '\n'.join(member_name)
 
             embed = discord.Embed(title="設定", description="このサーバーの現在の設定です。"
                                                             "\nこの設定は、サーバー所有者と指定された管理メンバーのみ変更できます。",
                                   color=color_m)
-            embed.add_field(name="塗り性能保障", value="`min-inked` : " + value, inline=False)
+            embed.add_field(name="塗り性能の保障", value="`min-inked` : " + min_inked_s, inline=False)
+            embed.add_field(name="武器重複の防止", value="`non-dup` : " + non_dup_s, inline=False)
             embed.add_field(name="管理メンバー", value='>>> {}'.format(str_m), inline=False)
             await ctx.send(embed=embed)
 
@@ -267,8 +271,9 @@ async def chSetting(ctx, *, text=''):
         # print('Command error', CE)
         embed = discord.Embed(description="コマンドを正しく入力してください。 詳細は`/help`で確認できます。", color=color_w)
         embed.add_field(name="`/chmod status`", value="サーバーの現在の設定が見れます。", inline=False)
-        embed.add_field(name="`/chmod min-inked [on/off]`", value="チームメンバー全体の最小限の塗り性能を保障します。"
-                                                                  "\n*管理者と指定された管理メンバーのみ使用できます。", inline=False)
+        embed.add_field(name="`/chmod min-inked [on/off]`", value="チームメンバー全体の最小限の塗り性能を保障します。", inline=False)
+        embed.add_field(name="`/chmod non-dup [on/off]`", value="チーム内の武器が重複しないようにします。", inline=False)
+        embed.set_footer(text="*サーバーの所有者と指定された管理メンバーのみ使用できます。\n")
         await ctx.send(embed=embed)
 
     # except Exception as e:
@@ -329,7 +334,10 @@ async def chPermission(ctx, text='', *, role: discord.Role):
     except (CommandError, IndexError) as CE:
         # print('Command error', CE)
         embed = discord.Embed(description="コマンドを正しく入力してください。 詳細は`/help`で確認できます。", color=color_w)
+        embed.add_field(name="`/chgrp add [@ロール]`"
+                             "\n`/chgrp del [@ロール]`", value="ロールに管理権限を付与または取り消します。", inline=False)
+        embed.set_footer(text="*サーバーの所有者のみ使用できます。\n")
         await ctx.send(embed=embed)
 
 
-bot.run('MTE0OTc1NDM3NDcwMTE5NTI5NQ.Gyh0_i.DkpCz45PVKJkeOF54VM9mXXxnWl7X2Kj8hiwys')
+bot.run(token)

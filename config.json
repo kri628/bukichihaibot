@@ -1,14 +1,14 @@
 {
     "1149930327461068831": {
-        "allowed_grp": [
-            1150721274314768417
-        ],
-        "min_inked": false
+        "allowed_grp": [],
+        "min-inked": true,
+        "non-dup": false
     },
     "1069846539704471623": {
         "allowed_grp": [
             1143795058131349524
         ],
-        "min_inked": false
+        "min-inked": true,
+        "non-dup": true
     }
 }

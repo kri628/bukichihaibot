@@ -7,7 +7,7 @@ df = pd.read_csv('./weapondb.csv')
 # name = set(data['name'])
 weapon_id = set(df['id'])
 # print(name)
-ink_threshold = 230.0
+ink_threshold = 250.0
 
 
 def isInkable(id_list):
@@ -31,19 +31,31 @@ def isNotEqual(prev_result, result, num):
     return True
 
 
-def getOpResult(num, prev_result, min_inked):
-    result = random.sample(weapon_id, num)
+def random_buki(non_dup, num):
+    if non_dup:
+        result = random.sample(weapon_id, num)
+    else:
+        result = [random.randint(0, 101) for i in range(num)]
+
+    return result
+
+
+def getOpResult(num, prev_result, settings):
+    min_inked = settings.get('min-inked')
+    non_dup = settings.get('non-dup')
+
+    result = random_buki(non_dup, num)
 
     if min_inked:
         while True:
             if isInkable(result):
                 break
-            result = random.sample(weapon_id, num)
+            result = random_buki(non_dup, num)
 
     while True:
         if isNotEqual(prev_result, result, num):
             break
-        result = random.sample(weapon_id, num)
+        result = random_buki(non_dup, num)
 
     weapon = df.iloc[result]['name']
     # print(weapon, result, prev_result)
@@ -51,20 +63,23 @@ def getOpResult(num, prev_result, min_inked):
     return weapon, result
 
 
-def getPrResult(n, min_inked):
-    result_b = random.sample(weapon_id, n)
-    result_y = random.sample(weapon_id, n)
+def getPrResult(n, settings):
+    min_inked = settings.get('min-inked')
+    non_dup = settings.get('non-dup')
+
+    result_b = random_buki(non_dup, n)
+    result_y = random_buki(non_dup, n)
 
     if min_inked:
         while True:
             if isInkable(result_b):
                 break
-            result_b = random.sample(weapon_id, n)
+            result_b = random_buki(non_dup, n)
 
         while True:
             if isInkable(result_y):
                 break
-            result_y = random.sample(weapon_id, n)
+            result_y = random_buki(non_dup, n)
 
     weapon_b = df.iloc[result_b]['name']
     weapon_y = df.iloc[result_y]['name']
