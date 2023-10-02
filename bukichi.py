@@ -1,13 +1,24 @@
 import random
 import pandas as pd
 import numpy as np
+import pymysql
 
-df = pd.read_csv('./weapondb.csv')
+con = pymysql.connect(host='127.0.0.1', user='test', password='test01', db='splatoon3_db', charset='utf8')
+cur = con.cursor()
+
+# df = pd.read_csv('./weapondb.csv')
 # print(data)
 # name = set(data['name'])
-weapon_id = set(df['id'])
+# weapon_id = set(df['id'])
 # print(name)
-ink_threshold = 250.0
+ink_threshold = 800.0
+
+sql = 'select P.id, P.name, (ch_area + ch_tower + ch_fish + ch_clam + x_area + x_tower + x_fish + x_clam) / 8 as sum from (select ch_area.id, ch_area.name, ch_area.ink as ch_area, A.ink as ch_tower, B.ink as ch_fish, C.ink as ch_clam,  D.ink as x_area, E.ink as x_tower, F.ink as x_fish, G.ink as x_clam  from ch_area left join ch_tower as A on ch_area.id = A.id  left join ch_fish as B on A.id = B.id  left join ch_clam as C on B.id = C.id  left join x_area as D on C.id = D.id  left join x_tower as E on D.id = E.id  left join x_fish as F on E.id = F.id  left join x_clam as G on F.id = G.id) P;'
+cur.execute(sql)
+rows = cur.fetchall()
+df = pd.DataFrame(rows, columns=['id', 'name', 'inked'])
+print(df)
+weapon_id = set(df['id'])
 
 
 def isInkable(id_list):
