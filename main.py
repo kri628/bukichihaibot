@@ -171,7 +171,9 @@ async def random_weapon(ctx, *, text=''):
         await ctx.send(embed=embed)
 
     except (CommandError, IndexError) as CE:
-        # print('Command error', CE)
+        print('Command error', CE)
+        print(text, end='\n')
+
         embed = discord.Embed(description="コマンドを正しく入力してください。 詳細は`/help`で確認できます。", color=color_w)
         embed.add_field(name="`/bukichi op [人数]`", value="オープンの1チームの武器を選びます。（２〜４人）", inline=False)
         embed.add_field(name="`/bukichi pr [人数]`", value="プラベの両チームの武器を選びます。（２〜８人）\n*偶数のみ可能", inline=False)
