@@ -9,7 +9,7 @@ prev_result = []
 color_m = 0x82d745
 color_w = 0xe8e82a
 
-f = open('../bot.txt', 'r')
+f = open('../../discordSettings/BukichihaiBot.txt', 'r')
 token = f.readline()
 
 config = {}
@@ -31,24 +31,20 @@ class MemberNumError(Exception):
         return self.msg
 
 
-def init_server(server_id):
+def init_server(server):
     global config
 
-    config[str(server_id)] = {"allowed_grp": [],
+    config[str(server[0])] = {"server_name": server[1],
+                              "owner": server[2],
+                              "allowed_grp": [],
                               "min-inked": False,
                               "non-dup": False
                               }
 
-    save_setting()
-
-
-def save_setting():
-    global config
-
+    # save
     with open('./config.json', 'w') as f:
         json.dump(config, f, indent=4)
     f.close()
-
     print("settings saved.")
 
 
@@ -117,11 +113,11 @@ async def random_weapon(ctx, *, text=''):
     global prev_result, config
 
     server_id = ctx.guild.id
-    settings = config.get(str(server_id))
-    # print(min_inked)
 
-    if settings is None:
-        init_server(server_id)
+    if config.get(str(server_id)) is None:
+        init_server([server_id, ctx.guild.name, ctx.guild.owner.name])
+
+    settings = config.get(str(server_id))
 
     try:
         words = text.split()
@@ -193,7 +189,7 @@ async def chSetting(ctx, *, text=''):
     # print(ctx.guild.roles)
 
     if not str(server_id) in config:
-        init_server(server_id)
+        init_server([server_id, ctx.guild.name, ctx.guild.owner.name])
 
     try:
         words = text.split()
@@ -289,7 +285,7 @@ async def chPermission(ctx, text='', *, role: discord.Role):
     server_id = ctx.guild.id
 
     if not str(server_id) in config:
-        init_server(server_id)
+        init_server([server_id, ctx.guild.name, ctx.guild.owner.name])
 
     if ctx.guild:
         if not (ctx.message.author.guild_permissions.administrator or ctx.message.author.id == 1020740857856524288):

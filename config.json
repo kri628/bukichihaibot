@@ -1,14 +1,9 @@
 {
     "1149930327461068831": {
+        "server_name": "Test",
+        "owner": "lili___es",
         "allowed_grp": [],
-        "min-inked": true,
-        "non-dup": true
-    },
-    "1069846539704471623": {
-        "allowed_grp": [
-            1143795058131349524
-        ],
-        "min-inked": true,
-        "non-dup": true
+        "min-inked": false,
+        "non-dup": false
     }
 }
