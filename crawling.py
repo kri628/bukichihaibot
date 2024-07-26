@@ -8,17 +8,17 @@ con = pymysql.connect(host='127.0.0.1', user='test', password='test01', db='spla
 
 tables = ['ch_area', 'ch_tower', 'ch_fish', 'ch_clam', 'x_area', 'x_tower', 'x_fish', 'x_clam']
 
-urls = ['https://stat.ink/entire/weapons3/bankara_challenge/area?season=5',
-        'https://stat.ink/entire/weapons3/bankara_challenge/yagura?season=5',
-        'https://stat.ink/entire/weapons3/bankara_challenge/hoko?season=5',
-        'https://stat.ink/entire/weapons3/bankara_challenge/asari?season=5',
-        'https://stat.ink/entire/weapons3/xmatch/area?season=5',
-        'https://stat.ink/entire/weapons3/xmatch/yagura?season=5',
-        'https://stat.ink/entire/weapons3/xmatch/hoko?season=5',
-        'https://stat.ink/entire/weapons3/xmatch/asari?season=5',
+urls = ['https://stat.ink/entire/weapons3/bankara_challenge/area?season=8',
+        'https://stat.ink/entire/weapons3/bankara_challenge/yagura?season=8',
+        'https://stat.ink/entire/weapons3/bankara_challenge/hoko?season=8',
+        'https://stat.ink/entire/weapons3/bankara_challenge/asari?season=8',
+        'https://stat.ink/entire/weapons3/xmatch/area?season=8',
+        'https://stat.ink/entire/weapons3/xmatch/yagura?season=8',
+        'https://stat.ink/entire/weapons3/xmatch/hoko?season=8',
+        'https://stat.ink/entire/weapons3/xmatch/asari?season=8',
         ]
 
-td_id = ['62c7a71a', 'f871828c', 'd2cb7372', '64db7551', 'e67a5baa', 'bb4e997d', '47e9c315', '72b2ac33']
+td_id = ['cceb8b0e', '1e9ee576', 'eb9d0cd1', 'd1de5d11', '3dbecd3f', 'f72372fb', 'd4985b86', '9b132dcb']
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36',
            "Accept-Language": "ja"}
@@ -51,13 +51,9 @@ for i in range(8):
         kilassi = float(tr.select_one('td:nth-child(14)').attrs['data-sort-value'].strip())
         ink = float(tr.select_one('td:nth-child(19)').attrs['data-sort-value'].strip())
 
-        print(weapon_id, name, sub, special, use_rate, win_rate, kill, deth, assi, kilassi, ink)
-        # df.loc[weapon_id] = [weapon_id, name, sub, special, inked]
-
-        cur.execute(sql, (weapon_id, name, sub, special, use_rate, win_rate, kill, deth, assi, kilassi, ink))
-
-    # print(df)
-    # df.to_csv('./weapondb.csv', mode='w', index=False)
+        if weapon_id < 121 or weapon_id > 132:  # execpt side order weapons
+            print(weapon_id, name, sub, special, use_rate, win_rate, kill, deth, assi, kilassi, ink)
+            cur.execute(sql, (weapon_id, name, sub, special, use_rate, win_rate, kill, deth, assi, kilassi, ink))
 
 con.commit()
 con.close()
