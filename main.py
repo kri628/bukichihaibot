@@ -41,10 +41,16 @@ def init_server(server):
                               "non-dup": False
                               }
 
-    # save
+    save_setting()
+
+
+def save_setting():
+    global config
+
     with open('./config.json', 'w') as f:
         json.dump(config, f, indent=4)
     f.close()
+
     print("settings saved.")
 
 

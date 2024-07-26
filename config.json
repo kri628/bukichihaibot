@@ -3,7 +3,7 @@
         "server_name": "Test",
         "owner": "lili___es",
         "allowed_grp": [],
-        "min-inked": false,
+        "min-inked": true,
         "non-dup": false
     }
 }
